@@ -144,11 +144,13 @@ This project was built in approximately 16 hours as a functional prototype, and 
 **No Monitoring or Alerting.** There's zero operational visibility beyond stdout logs. No metrics on request latency, error rates, API quota consumption, or rate limit hits. If something breaks in production, you'd only know when users complain. Production systems would integrate Prometheus metrics, health check endpoints with detailed status, and alerts for anomalies (spike in 500 errors, approaching API quota, memory leaks).
 
 
-* Redis for **distributed** rate limiting and response caching (no API changes).
-* Incremental FAISS updates via `IndexIDMap2` for near-zero-downtime refreshes.
-* Replace linear rerank with **learn-to-rank** behind the same scoring interface.
-* Expand filter schema with new facets by editing `query_filter.py` (no search code changes).
-* Implement proper authentication (OAuth2 + JWT) before any public launch.
-* Migrate secrets to Secret Manager and enable audit logging.
+* Redis for response caching
+* Swap linear re-ranker for a learn-to-rank model
+* Extend filtering by adding new facets in query_filter.py and changing how sorting works (quite hardcoded now)
+* Implement proper authentication (OAuth2 + JWT) before any public launch
 * Add comprehensive monitoring (Prometheus) and alerting (PagerDuty).
 * Replicate SQLite to PostgreSQL for durability if catalog becomes dynamic.
+* Create a database server
+* Use Opensearch/elastisearch
+  
+
