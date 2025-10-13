@@ -18,3 +18,12 @@ google-generativeai>=0.7.0
 pytest>=8.3.0
 httpx>=0.27.0
 black>=24.8.0
+
+# Core for vector search + embeddings
+faiss-cpu>=1.7.4
+# Numeric + model deps
+numpy>=1.24,<3
+
+# Optional but recommended (better HF caching & downloads)
+huggingface-hub>=0.23
+tqdm>=4.66

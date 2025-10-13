@@ -44,17 +44,9 @@ def product_search(payload: Union[Dict[str, Any], str]) -> Dict[str, Any]:
                 for p in result["products"]
             ]
             
-            # Adjust number of products returned based on what was found:
-            # - If found 1 item: return 1
-            # - If found 2 items: return 2
-            # - If found >= 3 items: return 3
-            total_found = result.get("total", 0)
-            if total_found == 1:
-                result["products"] = result["products"][:1]
-            elif total_found == 2:
-                result["products"] = result["products"][:2]
-            else:  # total_found >= 3
-                result["products"] = result["products"][:3]
+            # Simple logic: return up to 3 products, or whatever is available
+            products = result["products"]
+            result["products"] = products[:3]
                 
         return result
     except Exception as e:

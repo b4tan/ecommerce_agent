@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  ecommerce-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - EMBED_MODEL=text-embedding-004
+      - MAX_IMAGE_MB=20
+      # Rate limiting (adjust these to control costs)
+      - ENABLE_RATE_LIMITING=true
+      - MAX_REQUESTS_PER_MINUTE=10
+      - MAX_REQUESTS_PER_HOUR=100
+      - MAX_REQUESTS_PER_DAY=500
+      - MAX_IMAGE_UPLOADS_PER_HOUR=20
+      - MAX_IMAGE_UPLOADS_PER_DAY=100
+      - MAX_DAILY_API_CALLS=1000
+    volumes:
+      # Mount data directory to persist database
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+

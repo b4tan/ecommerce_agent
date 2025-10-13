@@ -1,4 +1,4 @@
-const API = localStorage.getItem("API_BASE") || "http://localhost:8000";
+const API = localStorage.getItem("API_BASE") || "http://localhost:8001";
 const messagesDiv = document.getElementById("messages");
 const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
@@ -171,8 +171,6 @@ async function sendMessage() {
   }
   if (currentFile) {
     addMessage(`📎 Image attached`, true);
-    // Remove image immediately after adding to chat
-    removeImage();
   }
   
   // Clear input
@@ -190,6 +188,13 @@ async function sendMessage() {
       const formData = new FormData();
       formData.append('file', currentFile);
       formData.append('query', text || '');
+      
+      // Debug logging
+      console.log('File details:', {
+        name: currentFile.name,
+        type: currentFile.type,
+        size: currentFile.size
+      });
       
       const res = await fetch(`${API}/chat/upload`, {
         method: 'POST',
@@ -221,6 +226,11 @@ async function sendMessage() {
     console.log('Products to show:', products);
     
     addMessage(botText, false, products);
+    
+    // Remove image after successful processing
+    if (currentFile) {
+      removeImage();
+    }
     
   } catch (error) {
     hideTyping();

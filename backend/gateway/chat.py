@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from langchain_core.messages import HumanMessage, ToolMessage
 from typing import Any, Dict, List
 
 from backend.agent.graph import agent, THREAD_ID
 from backend.gateway.schema import ChatRequest, ChatResponse
+from backend.gateway.rate_limiter import check_rate_limit, check_api_call_limit
 from services.schema import ProductCard
 
 router = APIRouter()
@@ -45,7 +46,11 @@ def _extract_products(messages: List[Any]) -> List[ProductCard]:
 
 # ---- TEXT CHAT ----
 @router.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
+def chat(req: ChatRequest, request: Request):
+    # Check rate limits
+    check_rate_limit(request, is_image=False)
+    check_api_call_limit()
+    
     q = (req.query or "").strip()
     if not q:
         raise HTTPException(status_code=400, detail="Query text cannot be empty.")

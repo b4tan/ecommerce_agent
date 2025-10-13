@@ -1,0 +1,1 @@
+{"dim": 768, "model": "text-embedding-004", "normalized": true, "fields": ["title", "brand", "categories", "description", "features", "plus_content", "top_review", "department"]}

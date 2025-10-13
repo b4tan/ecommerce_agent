@@ -1,5 +1,5 @@
 # gateway/upload.py
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
 from pydantic import BaseModel
 from typing import Any, List, Optional
 from base64 import b64encode
@@ -10,6 +10,7 @@ from langchain_core.messages import HumanMessage, ToolMessage
 from backend.agent.graph import agent, THREAD_ID
 from services.schema import ProductCard
 from backend.gateway.schema import ChatResponse
+from backend.gateway.rate_limiter import check_rate_limit, check_api_call_limit
 
 router = APIRouter()
 
@@ -57,11 +58,16 @@ def _extract_products(messages: List[Any]) -> List[ProductCard]:
 async def chat_upload(
     file: UploadFile = File(...),
     query: str = Form(""),
+    request: Request = None,
 ):
+    # Check rate limits
+    check_rate_limit(request, is_image=True)
+    check_api_call_limit()
+    
     # ---- sanity checks ----
     ctype = (file.content_type or "").lower()
     if ctype not in ALLOWED_MIME:
-        raise HTTPException(status_code=400, detail=f"Unsupported file type: {ctype or 'unknown'}")
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {ctype or 'unknown'}. Allowed types: {list(ALLOWED_MIME)}")
     raw = await file.read()
     size_mb = len(raw) / (1024 * 1024)
     if size_mb > MAX_IMAGE_MB:
@@ -81,6 +87,21 @@ async def chat_upload(
     config = {"configurable": {"thread_id": THREAD_ID}}
     result = agent.invoke({"messages": [HumanMessage(content=content)]}, config)
 
+    # Debug: Check if any tools were called
+    msgs = result.get("messages", [])
+    tool_calls = []
+    for msg in msgs:
+        if hasattr(msg, 'tool_calls') and msg.tool_calls:
+            tool_calls.extend(msg.tool_calls)
+   
+    # Debug: Check what products were extracted
+    products = _extract_products(msgs)
+    print(f"DEBUG: Products extracted: {len(products)} products")
+    if products:
+        print(f"DEBUG: First product: {products[0].title if products else 'None'}")
+    else:
+        print("DEBUG: NO PRODUCTS EXTRACTED - Tool results not being processed!")
+
     msgs: List[Any] = result.get("messages", [])
     assistant_text = (msgs[-1].content if msgs else "Processed image.")
     products = _extract_products(msgs)
@@ -95,6 +116,9 @@ async def chat_upload(
         intent = intent_match.group(1)
     
     # Show products only if AI explicitly marked this as a recommendation
+    if products and len(products) > 0 and intent != 'RECOMMENDATION':
+        intent = 'RECOMMENDATION'
+    
     should_show_products = (
         products and 
         len(products) > 0 and

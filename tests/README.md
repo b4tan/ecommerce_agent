@@ -1,174 +1,143 @@
-# Ecommerce Agent Test Suite
+# Tests for FAISS Hybrid Search
 
-This directory contains a comprehensive test suite for the ecommerce agent system, designed to ensure the tools, database search, and API layers work correctly for the agent.
+Clean, focused tests for the Gemini-powered FAISS hybrid search system.
 
 ## Test Structure
 
-### Core Test Files
-- **`conftest.py`** - Test configuration, fixtures, and utilities
-- **`tool_test.py`** - Basic tests for the product search tool
-- **`catalog_api_test.py`** - Basic tests for the catalog API
-- **`catalog_search_test.py`** - Basic tests for database search functionality
-
-### Comprehensive Test Files
-- **`test_tool_comprehensive.py`** - Extensive tests for tool functionality, input validation, error handling, and edge cases
-- **`test_catalog_api_comprehensive.py`** - Comprehensive API tests including boundary conditions and error scenarios
-- **`test_catalog_search_comprehensive.py`** - Thorough database search tests with various query combinations
-- **`test_database_integrity.py`** - Database schema, data quality, and performance tests
-- **`test_integration.py`** - End-to-end integration tests and system reliability tests
-
-## Test Categories
-
-### 1. Basic Functionality Tests
-- Tool invocation with valid inputs
-- API search and product retrieval
-- Database search with basic queries
-- Result structure validation
-
-### 2. Input Validation Tests
-- Invalid payload handling
-- Parameter type validation
-- Boundary value testing
-- Malformed input scenarios
-
-### 3. Error Handling Tests
-- Database connection failures
-- Search execution errors
-- Tool input validation errors
-- Graceful degradation testing
-
-### 4. Edge Case Tests
-- Very long queries
-- Special characters and Unicode
-- Empty and null inputs
-- Extreme parameter values
-
-### 5. Performance Tests
-- Query execution time
-- Memory usage validation
-- Concurrent access testing
-- Large result set handling
-
-### 6. Integration Tests
-- End-to-end workflows
-- Cross-layer consistency
-- Real-world scenarios
-- System reliability
-
-### 7. Database Integrity Tests
-- Schema validation
-- Data quality checks
-- Constraint verification
-- Performance benchmarks
-
-## Test Utilities
-
-### TestDataHelper Class
-Provides utility methods for:
-- Creating valid test payloads
-- Asserting result structure validity
-- Validating product card format
-- Generating test data combinations
-
-### Fixtures
-- **`db_connection`** - Database connection for tests
-- **`sample_product_data`** - Sample product data for mocking
-- **`mock_product_row`** - Mock database row for testing
-- **`text_search_spec`** - Basic search specification
-
-### Test Data Sets
-- **`SEARCH_QUERIES`** - Various query strings for testing
-- **`FILTER_COMBINATIONS`** - Different filter combinations
-- **`SORT_SPECS`** - Various sorting specifications
-- **`INVALID_INPUTS`** - Invalid input scenarios
+```
+tests/
+├── conftest.py              # Fixtures and configuration
+├── test_hybrid_search.py    # Core hybrid search tests
+├── test_catalog_search.py   # Catalog search API tests
+└── test_integration.py      # End-to-end integration tests
+```
 
 ## Running Tests
 
-### Run All Tests
+### All tests
 ```bash
-python -m pytest tests/ -v
+pytest tests/
 ```
 
-### Run Specific Test Categories
+### Specific test file
 ```bash
-# Basic functionality tests
-python -m pytest tests/tool_test.py tests/catalog_api_test.py tests/catalog_search_test.py -v
-
-# Comprehensive tests
-python -m pytest tests/test_*_comprehensive.py -v
-
-# Integration tests
-python -m pytest tests/test_integration.py -v
-
-# Database integrity tests
-python -m pytest tests/test_database_integrity.py -v
+pytest tests/test_hybrid_search.py
+pytest tests/test_catalog_search.py
+pytest tests/test_integration.py
 ```
 
-### Run Tests with Coverage
+### By marker
 ```bash
-python -m pytest tests/ --cov=services --cov=backend --cov-report=html
+pytest -m requires_db           # Tests requiring database
+pytest -m requires_faiss        # Tests requiring FAISS index
+pytest -m requires_api          # Tests requiring API key
 ```
 
-## Test Requirements
+### Verbose output
+```bash
+pytest tests/ -v
+```
 
-### Database
-- SQLite database at `./data/catalog.sqlite`
-- Products table with sample data
-- Optional FTS (Full Text Search) table
+### With coverage
+```bash
+pytest tests/ --cov=services --cov-report=html
+```
 
-### Dependencies
-- pytest
-- unittest.mock
-- sqlite3 (built-in)
-- All project dependencies from requirements.txt
+## Prerequisites
 
-## Test Coverage
+### 1. Database
+```bash
+python scripts/build_db.py scripts/amazon-products.csv
+```
 
-The test suite covers:
+### 2. FAISS Index
+```bash
+python scripts/build_faiss_gemini.py
+```
 
-✅ **Tool Layer**
-- Input validation and sanitization
-- Error handling and graceful degradation
-- Output format consistency
-- Performance and memory usage
+### 3. Environment Variables
+Create `backend/.env`:
+```bash
+GOOGLE_API_KEY=your_key_here
+```
 
-✅ **API Layer**
-- Parameter validation and clamping
-- Search functionality
-- Product retrieval
-- Error propagation
+## Test Categories
 
-✅ **Database Search**
-- Query execution
+### `test_hybrid_search.py`
+- Vector search (FAISS)
+- Lexical search (SQL LIKE)
+- Hybrid ranking
 - Filter application
-- Sorting functionality
-- Pagination support
+- Pagination
+- Edge cases
 
-✅ **Integration**
-- Cross-layer communication
-- Data consistency
-- End-to-end workflows
-- System reliability
+### `test_catalog_search.py`
+- API interface
+- Request/response structure
+- ProductCard conversion
+- Error handling
+- Input validation
 
-✅ **Edge Cases**
-- Invalid inputs
-- Extreme values
-- Special characters
-- Concurrent access
+### `test_integration.py`
+- Complete search pipeline
+- Tool integration
+- Search quality
+- Performance
+- Robustness
 
-## Best Practices
+## Test Markers
 
-1. **Isolation** - Each test is independent and can run in any order
-2. **Mocking** - External dependencies are mocked where appropriate
-3. **Data Validation** - All inputs and outputs are validated
-4. **Error Scenarios** - Both success and failure paths are tested
-5. **Performance** - Tests include performance and resource usage validation
-6. **Documentation** - All tests are well-documented with clear descriptions
+- `@pytest.mark.requires_db` - Needs database
+- `@pytest.mark.requires_faiss` - Needs FAISS index  
+- `@pytest.mark.requires_api` - Needs API key
 
-## Maintenance
+## Expected Test Results
 
-- Add new tests for new functionality
-- Update existing tests when APIs change
-- Monitor test performance and optimize as needed
-- Keep test data up to date with schema changes
-- Review and update test coverage regularly
+With database and FAISS index:
+- ✅ All tests should pass
+- ⏱️ Average: ~2-5 seconds total
+- 🎯 Coverage: >85%
+
+Without FAISS index:
+- ⏭️ Tests marked `requires_faiss` will skip
+
+## Troubleshooting
+
+### "Test database not found"
+```bash
+python scripts/build_db.py scripts/amazon-products.csv
+```
+
+### "FAISS index missing"
+```bash
+python scripts/build_faiss_gemini.py
+```
+
+### "GOOGLE_API_KEY missing"
+Set in `backend/.env` or skip API tests:
+```bash
+pytest tests/ -m "not requires_api"
+```
+
+### Import errors
+```bash
+pip install -r requirements.txt
+```
+
+## Adding New Tests
+
+1. Add to appropriate file
+2. Use descriptive names
+3. Add markers if needed
+4. Keep tests independent
+5. Clean up resources
+
+Example:
+```python
+@pytest.mark.requires_db
+def test_new_feature(db_connection):
+    """Test new feature description."""
+    # Test implementation
+    assert result == expected
+```
+
