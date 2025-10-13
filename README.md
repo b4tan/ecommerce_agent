@@ -32,7 +32,7 @@ ecommerce_agent/
 ├── Dockerfile                 # Docker image definition
 ├── docker-compose.yml         # Docker compose config
 ├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+└── README.md                  
 ```
 Database sourced from https://github.com/luminati-io/eCommerce-dataset-samples/blob/main/amazon-products.csv. Data loaded into sqlite.
 
