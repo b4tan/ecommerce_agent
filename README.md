@@ -1,296 +1,399 @@
-# Ecommerce AI Agent
+# 🛍️ E-commerce AI Agent
 
-An intelligent shopping assistant that combines AI-powered conversational interface with advanced product search capabilities. Users can chat naturally about products and get relevant recommendations through both text and image inputs.
+An intelligent shopping assistant powered by Google Gemini AI that provides natural conversational product recommendations through text and image inputs. Built with advanced hybrid search combining FAISS vector embeddings and lexical matching for highly relevant product discovery.
 
-## 🚀 Features
+## ✨ Key Features
 
-### **Conversational Shopping**
-- **Natural Language Interface**: Chat with the AI agent like you would with a human shopping assistant
-- **Intent Classification**: Automatically detects whether you're asking questions, requesting recommendations, or just chatting
-- **Smart Product Display**: Shows products only when making actual recommendations
+### 🤖 AI-Powered Conversations
+- **Natural Language Understanding**: Chat naturally about products like talking to a human assistant
+- **Intent Classification**: Automatically detects when to show products vs. ask clarifying questions
+- **Context-Aware**: Maintains conversation history for coherent multi-turn interactions
+- **Multimodal Input**: Search using text queries or upload product images
 
-### **Advanced Search Capabilities**
-- **Full-Text Search (FTS5)**: Powered by SQLite FTS5 with optimized relevance scoring
-- **Multi-Modal Input**: Search using text queries or upload product images
-- **Intelligent Filtering**: Automatic semantic filtering to exclude irrelevant categories
-- **Dynamic Results**: Returns 1-3 products based on what's actually found
+### 🔍 Advanced Hybrid Search
+- **FAISS Vector Search**: Semantic similarity using Google Gemini embeddings (`text-embedding-004`)
+- **Lexical Matching**: Title and description keyword matching with phrase detection
+- **Normalized Scoring**: Min-max normalization across semantic, lexical, rating, and review signals
+- **Smart Filtering**: SQL-based filters for price, rating, department, brand, availability
+- **Dynamic Results**: Returns up to 3 most relevant products per query
 
-### **Robust Database**
-- **Typed Schema**: Proper SQLite data types (INTEGER, REAL, TEXT) for optimal performance
-- **Comprehensive Indexing**: 22 B-tree indexes for fast filtering and sorting
-- **FTS5 Integration**: 8 searchable text columns with weighted BM25 relevance scoring
-- **Auto-Sync Triggers**: FTS index automatically stays in sync with data updates
+### 🛡️ Production-Ready Safeguards
+- **Rate Limiting**: Per-user and global limits to prevent abuse
+- **Cost Controls**: Configurable daily API call caps to control expenses
+- **Image Upload Limits**: Size and format restrictions with separate rate limits
+- **Health Monitoring**: `/stats` endpoint for real-time usage tracking
+
+### 💾 Optimized Database
+- **SQLite with FTS5**: Full-text search with BM25 ranking
+- **Pre-built FAISS Index**: No runtime embedding costs for search
+- **Typed Schema**: Proper data types for optimal query performance
+- **Comprehensive Indexing**: 22+ B-tree indexes for fast filtering
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Database      │
-│   (HTML/JS)     │◄──►│   (FastAPI)     │◄──►│   (SQLite)      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-    ┌─────────┐            ┌─────────────┐        ┌─────────────┐
-    │ Chat UI │            │ LangGraph   │        │ Products    │
-    │ Image   │            │ Agent       │        │ FTS Index   │
-    │ Upload  │            │ Tools       │        │ B-tree Idx  │
-    └─────────┘            └─────────────┘        └─────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         Frontend (HTML/JS)                       │
+│  • Chat interface  • Image upload  • Product display             │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTP/REST
+┌────────────────────────────┴────────────────────────────────────┐
+│                    Backend (FastAPI + LangGraph)                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Rate Limiter │  │  AI Agent    │  │ Search API   │          │
+│  │  Middleware  │→ │  (Gemini)    │→ │  (Hybrid)    │          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+┌────────────────────────────┴────────────────────────────────────┐
+│                    Data Layer (SQLite + FAISS)                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │   Products   │  │  FAISS Index │  │   FTS5 Index │          │
+│  │   (SQLite)   │  │  (Vectors)   │  │  (Full-text) │          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### **Components**
+## 🚀 Quick Start
 
-#### **Frontend (`client/`)**
-- **Modern Chat Interface**: Clean, responsive design with message bubbles
-- **Image Upload**: Drag-and-drop or click to upload product images
-- **Real-time Updates**: Typing indicators and smooth message flow
-- **Product Display**: Inline product cards with images, prices, and ratings
+### Prerequisites
+- Python 3.11+
+- Docker & Docker Compose (for deployment)
+- Google API Key (Gemini)
 
-#### **Backend (`backend/`)**
-- **FastAPI Gateway**: RESTful API with CORS support
-- **LangGraph Agent**: Conversational AI with structured output
-- **Google Gemini Integration**: LLM for natural language understanding
-- **Tool System**: Extensible tool architecture for product search
+### 1. Clone and Setup
 
-#### **Services (`services/`)**
-- **Catalog Search**: Advanced FTS5 search with relevance boosting
-- **Catalog API**: Clean abstraction layer for database operations
-- **Schema Management**: Pydantic models for type safety
-
-#### **Database (`data/`)**
-- **SQLite**: Lightweight, embedded database
-- **FTS5 Virtual Table**: Full-text search with 8 indexed columns
-- **B-tree Indexes**: 22 indexes for fast filtering and sorting
-- **Typed Schema**: Proper data types for optimal performance
-
-## 🔧 Setup & Installation
-
-### **Prerequisites**
-- Python 3.8+
-- Node.js (for frontend serving)
-- Google Gemini API key
-
-### **1. Clone and Install**
 ```bash
-git clone <repository-url>
+git clone <your-repo-url>
 cd ecommerce_agent
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### **2. Database Setup**
-```bash
-# Build the database from CSV
-python scripts/build_db.py scripts/amazon-products.csv ./data/catalog.sqlite products
+### 2. Configure Environment
 
-# This creates:
-# - Typed table with 55 columns
-# - 22 B-tree indexes for fast queries
-# - FTS5 virtual table with 8 searchable columns
-# - Auto-sync triggers for data consistency
+Create `backend/.env`:
+```bash
+GOOGLE_API_KEY=your_google_api_key_here
 ```
 
-### **3. Environment Configuration**
+### 3. Build Database and Index
+
 ```bash
-# Create backend/.env file
-echo "GOOGLE_API_KEY=your_gemini_api_key_here" > backend/.env
+# Build SQLite database with FTS5
+python scripts/build_db.py scripts/amazon-products.csv data/catalog.sqlite products
+
+# Build FAISS vector index (requires GOOGLE_API_KEY)
+python scripts/build_faiss_gemini.py
 ```
 
-### **4. Run the Application**
+This creates:
+- `data/catalog.sqlite` - Product database with FTS5
+- `data/products.faiss` - FAISS vector index
+- `data/products_ids.json` - ASIN mappings
+
+### 4. Run Locally
+
 ```bash
-# Terminal 1: Start backend server
+# Start backend server
 cd backend
-python -m uvicorn gateway.app:app --host 0.0.0.0 --port 8001 --reload
+python -m uvicorn gateway.app:app --reload --port 8001
 
-# Terminal 2: Serve frontend (optional)
-cd client
-python -m http.server 3000
+# Open frontend
+# Open client/index.html in your browser
+# Or serve with: python -m http.server 8000 (from client/ directory)
 ```
 
-### **5. Access the Application**
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8001
-- **API Docs**: http://localhost:8001/docs
+Visit: `http://localhost:8000` (frontend) or `http://localhost:8001/docs` (API docs)
+
+## 🐳 Docker Deployment
+
+### Build and Run
+
+```bash
+# Build image
+docker build -t ecommerce-agent .
+
+# Run with docker-compose
+docker-compose up -d
+
+# Check logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GOOGLE_API_KEY` | *required* | Google Gemini API key |
+| `EMBED_MODEL` | `text-embedding-004` | Gemini embedding model |
+| `MAX_IMAGE_MB` | `20` | Max image upload size (MB) |
+| `ENABLE_RATE_LIMITING` | `true` | Enable/disable rate limiting |
+| `MAX_REQUESTS_PER_MINUTE` | `10` | Per-user request limit |
+| `MAX_REQUESTS_PER_HOUR` | `100` | Per-user hourly limit |
+| `MAX_REQUESTS_PER_DAY` | `500` | Per-user daily limit |
+| `MAX_IMAGE_UPLOADS_PER_HOUR` | `20` | Per-user image upload limit |
+| `MAX_IMAGE_UPLOADS_PER_DAY` | `100` | Per-user daily image limit |
+| `MAX_DAILY_API_CALLS` | `1000` | Global daily API call cap |
+
+## 📊 API Endpoints
+
+### Chat
+```bash
+POST /chat
+Content-Type: application/json
+
+{
+  "query": "I need running shoes under $100"
+}
+```
+
+### Image Upload
+```bash
+POST /chat/upload
+Content-Type: multipart/form-data
+
+file: <image file>
+query: "find similar products" (optional)
+```
+
+### Health Check
+```bash
+GET /
+# Returns: {"message": "OK"}
+```
+
+### Usage Stats
+```bash
+GET /stats
+# Returns: {
+#   "rate_limiting_enabled": true,
+#   "api_calls_today": 234,
+#   "api_calls_reset_time": "2024-10-14T00:00:00"
+# }
+```
+
+## 🔧 Project Structure
+
+```
+ecommerce_agent/
+├── backend/
+│   ├── agent/
+│   │   ├── graph.py           # LangGraph agent definition
+│   │   ├── tools.py           # Product search tool
+│   │   ├── schema.py          # Agent data models
+│   │   └── system_prompt.txt  # AI instructions
+│   └── gateway/
+│       ├── app.py             # FastAPI application
+│       ├── chat.py            # Chat endpoint
+│       ├── upload.py          # Image upload endpoint
+│       ├── schema.py          # API schemas
+│       └── rate_limiter.py    # Rate limiting logic
+├── services/
+│   ├── hybrid_search.py       # FAISS + lexical search
+│   ├── catalog_search.py      # Search API gateway
+│   ├── query_filter.py        # SQL filter compiler
+│   └── schema.py              # Product data models
+├── client/
+│   ├── index.html             # Frontend UI
+│   └── app.js                 # Frontend logic
+├── scripts/
+│   ├── build_db.py            # Database builder
+│   └── build_faiss_gemini.py  # FAISS index builder
+├── data/
+│   ├── catalog.sqlite         # Product database
+│   ├── products.faiss         # Vector index
+│   └── products_ids.json      # ASIN mappings
+├── tests/                     # Comprehensive test suite
+├── Dockerfile                 # Docker image definition
+├── docker-compose.yml         # Docker compose config
+├── requirements.txt           # Python dependencies
+└── README.md                  # This file
+```
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_hybrid_search.py
+
+# Run with coverage
+pytest --cov=backend --cov=services
+```
+
+## 💰 Cost Estimation
+
+With default rate limits (1000 API calls/day max):
+
+| Usage Level | Queries/Day | Est. Monthly Cost |
+|-------------|-------------|-------------------|
+| Light | 100 text queries | ~$0.60 |
+| Medium | 500 text queries | ~$3.00 |
+| Heavy | 1000 text queries | ~$6.00 |
+| With Images | 100 images/day | ~$60.00 |
+
+**Important**: 
+- Search uses pre-built FAISS index (no API cost)
+- Only chat and image analysis call Gemini API
+- Set up budget alerts in Google Cloud Console!
+
+## 🚢 Hosting Options
+
+### Recommended Platforms
+
+1. **Google Cloud Run** (Serverless, auto-scaling)
+   ```bash
+   gcloud builds submit --tag gcr.io/PROJECT_ID/ecommerce-agent
+   gcloud run deploy --image gcr.io/PROJECT_ID/ecommerce-agent
+   ```
+
+2. **Railway.app** (Easiest deployment)
+   ```bash
+   railway login
+   railway up
+   ```
+
+3. **Fly.io** (Global edge deployment)
+   ```bash
+   fly launch
+   fly deploy
+   ```
+
+4. **DigitalOcean App Platform** (Simple, predictable pricing)
+   - Push to Docker Hub
+   - Deploy via DO Console
+
+5. **VPS** (Full control)
+   - DigitalOcean Droplet ($5/month)
+   - Linode, Vultr, etc.
+
+See deployment guides for detailed instructions.
+
+## 🛡️ Security & Best Practices
+
+### Production Checklist
+- ✅ Set up Google Cloud budget alerts
+- ✅ Enable rate limiting (`ENABLE_RATE_LIMITING=true`)
+- ✅ Use environment variables for secrets
+- ✅ Update CORS settings for your domain
+- ✅ Monitor `/stats` endpoint regularly
+- ✅ Start with conservative rate limits
+- ✅ Set up HTTPS (most platforms provide this)
+
+### Rate Limiting
+Rate limiting is **enabled by default** to protect against:
+- Abuse and spam
+- Unexpected cost spikes
+- API quota exhaustion
+
+Adjust limits in `docker-compose.yml` based on your budget and expected traffic.
 
 ## 🔍 How It Works
 
-### **Search Flow**
+### Search Flow
+1. **User Query** → Frontend sends text/image to backend
+2. **Rate Check** → Verify user hasn't exceeded limits
+3. **AI Analysis** → Gemini analyzes query and decides to search
+4. **Hybrid Search**:
+   - FAISS finds semantically similar products (vector search)
+   - Lexical matching finds keyword matches (title/description)
+   - SQL filters apply constraints (price, rating, etc.)
+   - Scores are normalized and combined
+5. **Ranking** → Top 3 products returned
+6. **AI Response** → Gemini formats results naturally
+7. **Display** → Frontend shows products with images
 
-#### **Text Search**
-1. **User Query**: "show me black shirts for men"
-2. **Intent Detection**: AI classifies as RECOMMENDATION
-3. **Query Processing**: 
-   - Converts to AND logic: "black AND shirt"
-   - Adds semantic filtering: excludes accessories, electronics
-   - Applies department filter: Men's only
-4. **FTS5 Search**: 
-   - Searches 8 indexed columns with weighted BM25 scoring
-   - Title matches get +10 boost, description +5 boost
-5. **Result Processing**: Returns 1-3 products based on actual matches
-6. **Response**: Natural language + product cards
-
-#### **Image Search**
-1. **Image Upload**: User uploads product photo
-2. **AI Vision**: Gemini analyzes image and extracts features
-3. **Query Generation**: AI creates search query from image description
-4. **Product Search**: Same FTS5 search process as text
-5. **Results**: Relevant products based on visual similarity
-
-### **Database Schema**
-
-#### **Products Table (55 columns)**
-```sql
-CREATE TABLE products (
-    asin TEXT PRIMARY KEY,           -- Amazon Standard Identification Number
-    title TEXT,                      -- Product title
-    brand TEXT,                      -- Brand name
-    description TEXT,                -- Product description
-    final_price REAL,                -- Current price
-    rating REAL,                     -- Average rating (0-5)
-    reviews_count INTEGER,           -- Number of reviews
-    department TEXT,                 -- Men/Women/Unisex
-    categories TEXT,                 -- JSON array of categories
-    image_url TEXT,                  -- Product image URL
-    url TEXT,                        -- Product page URL
-    -- ... 44 more columns
-);
+### Search Scoring
+```python
+total_score = (
+    0.4 × semantic_score +    # FAISS similarity
+    0.3 × lexical_score +     # Keyword matching
+    0.2 × rating_score +      # Product rating
+    0.1 × review_score        # Review count
+)
 ```
 
-#### **FTS5 Index (8 columns)**
-```sql
-CREATE VIRTUAL TABLE products_fts USING fts5(
-    title,              -- Weight: 8.0 (highest priority)
-    brand,              -- Weight: 5.0
-    categories,         -- Weight: 4.0
-    description,        -- Weight: 3.0
-    features,           -- Weight: 2.0
-    plus_content,       -- Weight: 1.5
-    top_review,         -- Weight: 1.2
-    department,         -- Weight: 1.0
-    content='products',
-    content_rowid='rowid',
-    tokenize='unicode61 remove_diacritics 1 tokenchars "._-"'
-);
-```
-
-#### **B-tree Indexes (22 indexes)**
-- **Single-column**: brand, department, final_price, rating, etc.
-- **Composite**: (brand, final_price), (department, final_price), etc.
-- **Special**: title COLLATE NOCASE for case-insensitive search
-
-## 🎯 Key Features Explained
-
-### **Smart Search Relevance**
-- **AND Logic**: "black shirt" becomes "black AND shirt" (not OR)
-- **Semantic Filtering**: Automatically excludes irrelevant categories
-- **Weighted BM25**: Title matches rank higher than description matches
-- **Dynamic Results**: Shows 1-3 products based on actual availability
-
-### **Intent Classification**
-The AI automatically classifies responses as:
-- **RECOMMENDATION**: When showing products (even with follow-up questions)
-- **QUESTION**: When asking for clarification without products
-- **CONVERSATION**: When just chatting or answering questions
-
-### **Image Processing**
-- **Multi-modal Input**: Upload images to find similar products
-- **AI Vision**: Gemini analyzes images and extracts product features
-- **Smart Matching**: Converts visual features to searchable text queries
-
-## 📊 Performance
-
-### **Search Performance**
-- **FTS5 Queries**: ~0.03 seconds for complex searches
-- **B-tree Filters**: Sub-millisecond for price/rating ranges
-- **Total Response**: 2-6 seconds (mostly AI processing time)
-
-### **Database Optimization**
-- **Indexed Search**: All common filter combinations have indexes
-- **FTS5 Virtual Table**: Fast full-text search with relevance scoring
-- **Typed Schema**: Proper data types for optimal storage and queries
-
-## 🛠️ Development
-
-### **Adding New Search Features**
-1. **Extend FTS Columns**: Add to `FTS_CANDIDATE_ORDER` in `build_db.py`
-2. **Update Search Logic**: Modify `services/catalog_search.py`
-3. **Add Filters**: Extend `_compile_filters()` function
-4. **Rebuild Database**: Run `build_db.py` to update FTS index
-
-### **Adding New Tools**
-1. **Create Tool**: Add function in `backend/agent/tools.py`
-2. **Register Tool**: Add to `TOOLS` list in `backend/agent/graph.py`
-3. **Update Prompt**: Modify system prompt if needed
-
-### **Testing**
-```bash
-# Run comprehensive tests
-python -m pytest tests/ -v
-
-# Test specific components
-python -m pytest tests/catalog_search_test.py -v
-python -m pytest tests/tool_test.py -v
-```
-
-## 🚨 Troubleshooting
-
-### **Common Issues**
-
-#### **"Failed to fetch" Error**
-- Check if backend server is running on port 8001
-- Verify API endpoint in `client/app.js`
-
-#### **"Quota exceeded" Error**
-- Google Gemini free tier has 250 requests/day limit
-- Switch to `gemini-1.5-flash` or upgrade to paid plan
-
-#### **Search Returns Wrong Results**
-- Check FTS index is populated: `SELECT COUNT(*) FROM products_fts`
-- Verify semantic filtering rules in `catalog_search.py`
-
-#### **Slow Search Performance**
-- Database search is fast (~0.03s), slowness is from AI processing
-- Consider caching frequent queries
-- Use faster Gemini model
-
-### **Database Issues**
-```bash
-# Rebuild database from scratch
-rm data/catalog.sqlite
-python scripts/build_db.py scripts/amazon-products.csv ./data/catalog.sqlite products
-
-# Check FTS index
-sqlite3 data/catalog.sqlite "SELECT COUNT(*) FROM products_fts;"
-
-# Verify indexes
-sqlite3 data/catalog.sqlite "PRAGMA index_list('products');"
-```
-
-## 📈 Future Enhancements
-
-### **Planned Features**
-- **Image Similarity**: Direct image-to-image matching
-- **Query Caching**: Cache frequent searches for faster responses
-- **User Preferences**: Remember user's style and brand preferences
-- **Price Alerts**: Notify when products go on sale
-- **Multi-language**: Support for non-English queries
-
-### **Technical Improvements**
-- **Streaming Responses**: Real-time response generation
-- **Advanced ML**: Custom relevance scoring models
-- **Database Scaling**: PostgreSQL for larger datasets
-- **Microservices**: Split into smaller, focused services
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+All scores normalized to [0, 1] per query for fair comparison.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+Contributions welcome! Areas for improvement:
+- Add authentication system
+- Implement Redis for distributed rate limiting
+- Add response caching
+- Support more product attributes
+- Improve search relevance
+- Add conversation memory persistence
+
+## 📝 License
+
+MIT License - feel free to use for personal or commercial projects.
+
+## 🆘 Troubleshooting
+
+### "Module not found" errors
+```bash
+# Ensure you're in the right directory
+cd backend
+python -m uvicorn gateway.app:app --reload --port 8001
+```
+
+### "GOOGLE_API_KEY not found"
+```bash
+# Create backend/.env with your API key
+echo "GOOGLE_API_KEY=your_key_here" > backend/.env
+```
+
+### Database not found
+```bash
+# Rebuild database and index
+python scripts/build_db.py scripts/amazon-products.csv data/catalog.sqlite products
+python scripts/build_faiss_gemini.py
+```
+
+### Rate limit errors (429)
+```bash
+# Temporarily disable for testing
+# In docker-compose.yml:
+ENABLE_RATE_LIMITING=false
+```
+
+### High costs
+```bash
+# Check usage
+curl http://localhost:8001/stats
+
+# Lower limits in docker-compose.yml
+MAX_DAILY_API_CALLS=100
+```
+
+## 📚 Documentation
+
+- **Architecture**: See code comments in `backend/agent/graph.py`
+- **Search Algorithm**: See `services/hybrid_search.py`
+- **API Reference**: Visit `/docs` endpoint when server is running
+- **System Prompt**: See `backend/agent/system_prompt.txt`
+
+## 🙏 Acknowledgments
+
+Built with:
+- [FastAPI](https://fastapi.tiangolo.com/) - Web framework
+- [LangGraph](https://langchain-ai.github.io/langgraph/) - AI agent orchestration
+- [Google Gemini](https://ai.google.dev/) - LLM and embeddings
+- [FAISS](https://github.com/facebookresearch/faiss) - Vector similarity search
+- [SQLite FTS5](https://www.sqlite.org/fts5.html) - Full-text search
 
 ---
 
-**Built with ❤️ using FastAPI, LangGraph, SQLite FTS5, and Google Gemini**
+**Ready to deploy?** Make sure to set up budget alerts in Google Cloud Console first! 💰

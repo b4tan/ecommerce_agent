@@ -41,13 +41,14 @@ COPY scripts/ ./scripts/
 ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONPATH=/app
 
-# Expose port
-EXPOSE 8001
+# Expose port (Cloud Run uses PORT env var, default to 8001)
+ENV PORT=8001
+EXPOSE ${PORT}
 
-# Health check
+# Health check (uses PORT env var)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8001/')" || exit 1
+    CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://localhost:{os.getenv(\"PORT\", \"8001\")}/')" || exit 1
 
-# Run the application
-CMD ["python", "-m", "uvicorn", "backend.gateway.app:app", "--host", "0.0.0.0", "--port", "8001"]
+# Run the application (Cloud Run will set PORT=8080)
+CMD python -m uvicorn backend.gateway.app:app --host 0.0.0.0 --port ${PORT}
 
