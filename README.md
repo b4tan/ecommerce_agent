@@ -152,5 +152,6 @@ This project was built in approximately 16 hours as a functional prototype, and 
 * Replicate SQLite to PostgreSQL for durability if catalog becomes dynamic.
 * Create a database server
 * Use Opensearch/elastisearch
+* User sessions and chat sessions (not using internal memory saver)
   
 
