@@ -119,10 +119,9 @@ def hybrid_search(q: str, filters: Dict[str, Any], limit: int, offset: int):
         sql  = base + (f" AND {where_sql}" if where_sql else "")
         rows = conn.execute(sql, params).fetchall()
 
-                # ---------------- Rerank (normalized, logically bounded) ----------------
         ql = q.lower()
 
-        # 1) Precompute raw lexical overlap + phrase hits per row (unbounded)
+        # Precompute raw lexical overlap + phrase hits per row (unbounded)
         def lex_raw(r):
             # Concise text bag: title + brand + categories + short description
             title = (r["title"] or "").lower()
@@ -144,36 +143,32 @@ def hybrid_search(q: str, filters: Dict[str, Any], limit: int, offset: int):
             # phrase bonus (bounded)
             phrase = 0.0
             if ql and ql in title:
-                phrase = 1.0                 # strongest if phrase is in title
+                phrase = 1.0                 
             elif ql and ql in doc_text:
-                phrase = 0.5                 # weaker if phrase is elsewhere
-
-            # combine (keep in [0, ~1])
+                phrase = 0.5                 
             # favors phrase presence, then token coverage
             return 0.7 * phrase + 0.3 * overlap
 
-        # 2) Collect raw component scores for candidates
-        rows_ = list(rows)  # stable
+        # Collect raw component scores for candidates
+        rows_ = list(rows)  
         sem_raw = [max(0.0, sem.get(r["asin"], 0.0)) for r in rows_]
         lex_raws = [lex_raw(r) for r in rows_]
         rtg_raw = [float(r["rating"] or 0.0) / 5.0 for r in rows_]  # already [0,1]
         rev_raw = [math.log1p(float(r["reviews_count"] or 0.0)) for r in rows_]
 
-        # 3) Per-query min-max normalization so each term is 0..1
+        # Per-query min-max normalization so each term is 0..1
         def _norm(arr):
             lo = min(arr) if arr else 0.0
             hi = max(arr) if arr else 0.0
             denom = (hi - lo) if (hi - lo) > 1e-9 else 1.0
             return [(x - lo) / denom for x in arr] if arr else []
 
-        sem_n = _norm(sem_raw)     # FAISS inner product → normalized per candidate set
-        lex_n = _norm(lex_raws)    # lexical signal normalized per candidate set
-        # rating is already [0,1]; normalize lightly to give headroom if all same
+        sem_n = _norm(sem_raw)     
+        lex_n = _norm(lex_raws)    
         rtg_n = _norm(rtg_raw)
-        # reviews: scale by max within candidate set
         rev_n = _norm(rev_raw)
 
-        # 4) Final weighted score
+        # Final weighted score
         scored = []
         for i, r in enumerate(rows_):
             s = (

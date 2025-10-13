@@ -1,4 +1,4 @@
-const API = localStorage.getItem("API_BASE") || "http://localhost:8001";
+const API =  "https://ecommerce-backend-30113186791.us-west1.run.app/";
 const messagesDiv = document.getElementById("messages");
 const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");

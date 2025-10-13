@@ -41,7 +41,6 @@ class CatalogAPI:
         except Exception:
             return None
 
-# simple singleton accessor
 _catalog_api: Optional[CatalogAPI] = None
 
 def get_catalog_api() -> CatalogAPI:

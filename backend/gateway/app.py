@@ -4,6 +4,8 @@ from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from .chat import router as chat_router
 from .upload import router as upload_router
 
@@ -16,12 +18,15 @@ if not os.getenv("GOOGLE_API_KEY"):
 
 app = FastAPI()
 
+FRONTEND_ORIGIN = "https://ecommerce-frontend-30113186791.us-west1.run.app"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[FRONTEND_ORIGIN],
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    allow_credentials=False,  # set True only if you use cookies/auth headers that require it
+    max_age=86400,
 )
 
 @app.get("/")

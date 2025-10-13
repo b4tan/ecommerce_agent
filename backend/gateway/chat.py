@@ -14,8 +14,6 @@ def _extract_products(messages: List[Any]) -> List[ProductCard]:
     import json
     items: List[ProductCard] = []
     
-    # Only look at the most recent messages to avoid showing old products
-    # Go through messages in reverse to find the most recent tool call
     for m in reversed(messages):
         try:
             if isinstance(m, ToolMessage):

@@ -57,7 +57,6 @@ def final_response(state: MessagesState):
     """Add structured intent to the final response if not already present."""
     last_message = state["messages"][-1]
     
-    # If already has intent marker, don't add another
     if hasattr(last_message, 'content') and '[INTENT:' in last_message.content:
         return {"messages": []}
     
