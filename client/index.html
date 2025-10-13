@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Commerce Agent Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="header">
+    <h1>🛍️ Commerce Agent</h1>
+    <p>Your AI shopping assistant - Ask me anything about products!</p>
+  </div>
+
+  <div class="chat-container">
+    <div class="messages" id="messages">
+      <div class="message bot">
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+          <div class="message-bubble">
+            Hi! I'm your commerce assistant. I can help you find products, answer questions, and provide recommendations. I will always show the 3 most relevant products!
+            You can ask me things like:
+            <br>• "Show me running shoes under $100"
+            <br>• "I need a laptop for gaming"
+            <br>• Upload an image to find similar products
+          </div>
+          <div class="message-time">Just now</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <div class="input-container">
+          <div class="image-preview" id="image-preview">
+            <img id="preview-img" src="" alt="Preview">
+            <button class="remove-image" onclick="removeImage()">×</button>
+          </div>
+          <div class="input-box">
+            <button class="attachment-btn" onclick="document.getElementById('file-input').click()" title="Attach image">
+              📎
+            </button>
+            <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)">
+            <textarea 
+              id="message-input" 
+              placeholder="Ask me about products or just chat..."
+              rows="1"
+              onkeydown="handleKeyDown(event)"
+              oninput="autoResize(this)"
+            ></textarea>
+          </div>
+        </div>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">
+          ➤
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
