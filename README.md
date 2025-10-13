@@ -34,6 +34,7 @@ ecommerce_agent/
 ├── requirements.txt           # Python dependencies
 └── README.md                  # This file
 ```
+Database sourced from https://github.com/luminati-io/eCommerce-dataset-samples/blob/main/amazon-products.csv
 
 ### Search Flow
 1. **User Query** → Frontend sends text/image to backend
