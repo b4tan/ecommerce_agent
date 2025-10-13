@@ -1,4 +1,5 @@
 # Project structure
+```
 ecommerce_agent/
 ├── backend/
 │   ├── agent/
